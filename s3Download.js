@@ -4,7 +4,6 @@
 const AWS = require('aws-sdk');
 const yargs = require('yargs/yargs');
 const fs = require('fs');
-const { demandOption } = require('yargs');
 
 AWSS3Utils = {};
 
