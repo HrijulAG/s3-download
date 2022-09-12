@@ -1,16 +1,46 @@
+#!/usr/bin/env node
 // Used to download any objects from a prod bucket, given the file names or the urls
 
 const AWS = require('aws-sdk');
+const yargs = require('yargs/yargs');
 const fs = require('fs');
+const { demandOption } = require('yargs');
 
 AWSS3Utils = {};
 
+// Args Setup ---------------------------------------------------------------------------
+
+const argv = yargs(process.argv.slice(2))
+	.scriptName('s3Download')
+	.usage("$0 [args]")
+	.options({
+		"bucket-name": {
+			type: "string",
+			describe: "The bucket name from which the files need to be downloaded.",
+			demandOption: true
+		},
+		"access-key-id": {
+			type: "string",
+			describe: "The AWS S3 access key ID"
+		},
+		"secret-access-key": {
+			type: "string",
+			describe: "The AWS S3 secret access key"
+		}
+	})
+	.help()
+	.parseSync();
+
+// S3 Object Definition -----------------------------------------------------------------
+
 AWSS3Utils.S3Object = new AWS.S3({
-	accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID || "<key here>",
-	secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY || "<key here>",
+	accessKeyId: argv.accessKeyId || "<key here>",
+	secretAccessKey: argv.secretAccessKey || "<key here>",
 	signatureVersion: 'v4',
 	region: 'ap-south-1'
 });
+
+// Function Definitions -----------------------------------------------------------------
 
 AWSS3Utils.downloadObjectV2 = async (fileName, bucketName) => {
 	try {
@@ -64,7 +94,7 @@ const downloadFilesFromBucketName = (bucketName, filesToDownload) => {
 
 const download = () => {
 	const fileNames = JSON.parse(fs.readFileSync('./file-names-to-download.json', 'utf-8')).fileNames;
-	downloadFilesFromBucketName('production-user-asset-documents', fileNames);
+	downloadFilesFromBucketName(argv.bucketName, fileNames);
 }
 
 download();
